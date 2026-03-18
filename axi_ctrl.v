@@ -50,11 +50,6 @@ module axi_ctrl#(
     
     wire        rd_fifo_empty           ;  //读FIFO空标志
     wire        rd_fifo_wr_rst_busy     ;  //读FIFO正在初始化,此时先不向SDRAM发出读取请求, 否则将有数据丢失
-        
-/*  reg         axi_wr_start_d          ;  //axi_wr_start打一拍,用于上升沿提取
-    reg         axi_rd_start_d          ;  //axi_rd_start打一拍,用于上升沿提取
-    wire        axi_wr_start_raise      ;  //axi_wr_start上升沿
-    wire        axi_rd_start_raise      ;  //axi_rd_start上升沿 */
     
     //真实的读写突发长度
     wire  [7:0] real_wr_len             ;  //真实的写突发长度,是wr_burst_len+1
@@ -109,114 +104,74 @@ module axi_ctrl#(
         end
     end
     
-/*     //axi_wr_start打拍
-    always@(posedge axi_clk or negedge rst_n) begin
-        if(~rst_n) begin
-            axi_wr_start_d <= 1'b0;
-        end else begin
-            axi_wr_start_d <= axi_wr_start;
-        end
-    end */
-    
-/*     //axi_rd_start打拍
-    always@(posedge axi_clk or negedge rst_n) begin
-        if(~rst_n) begin
-            axi_rd_start_d <= 1'b0;
-        end else begin
-            axi_rd_start_d <= axi_rd_start;
-        end
-    end */
-   
-    
-/*     //axi_wr_start上升沿提取
-    assign axi_wr_start_raise = (~axi_wr_start_d) & axi_wr_start;
-    
-    //axi_rd_start上升沿提取
-    assign axi_rd_start_raise = (~axi_rd_start_d) & axi_rd_start; */
-    
-/*     //rd_fifo_wr_en
-    always@(posedge axi_clk or negedge rst_n) begin
-        if(~rst_n) begin
-            rd_fifo_wr_en <= 1'b0;
-        end else begin
-            rd_fifo_wr_en <= axi_reading;
-        end
-    end */
-    
+    reg pp_reg;         //乒乓操作寄存器
+    wire pp_flag = 1'b0;
     //AXI写地址,更新地址并判断是否可能超限
     //axi_wr_addr
     always@(posedge axi_clk or negedge axi_rst_n) begin
         if(~axi_rst_n) begin
             axi_wr_addr <= wr_beg_addr;  //初始化为起始地址
-        end else if(~wr_rst_n) begin
-            axi_wr_addr <= wr_beg_addr;
-        end else if(axi_wr_done && axi_wr_addr > (wr_end_addr - {burst_wr_addr_inc[AXI_ADDR_WIDTH-2:0], 1'b0} + 'd1)) begin 
-        //每次写完成后判断是否超限, 下一个写首地址后续的空间已经不够再进行一次突发写操作, 位拼接的作用是×2
-            axi_wr_addr <= wr_beg_addr;
-        end else if(axi_wr_done) begin
-            axi_wr_addr <= axi_wr_addr + burst_wr_addr_inc;  //增加一个burst_len的地址
-        end else begin
-            axi_wr_addr <= axi_wr_addr;
+        end 
+        else if(pp_flag) begin
+            if(axi_wr_done && (axi_wr_addr >= ((wr_end_addr-wr_beg_addr)*2 + wr_beg_addr - burst_wr_addr_inc))) begin 
+                axi_wr_addr <= wr_beg_addr;
+            end else if(axi_wr_done) begin
+                axi_wr_addr <= axi_wr_addr + burst_wr_addr_inc;  //增加一个burst_len的地址
+            end else begin
+                axi_wr_addr <= axi_wr_addr;
+            end
+        end
+        else if(!pp_flag)begin
+            if(axi_wr_done && (axi_wr_addr >= (wr_end_addr- burst_wr_addr_inc))) begin 
+                axi_wr_addr <= wr_beg_addr;
+            end else if(axi_wr_done) begin
+                axi_wr_addr <= axi_wr_addr + burst_wr_addr_inc;  //增加一个burst_len的地址
+            end else begin
+                axi_wr_addr <= axi_wr_addr;
+            end
         end
     end
-    
+            
+    always@(posedge axi_clk or negedge axi_rst_n) begin
+        if(~axi_rst_n) begin
+            pp_reg <= 1'b0;   
+        end else if((pp_flag)&&(axi_wr_addr==wr_end_addr)) begin
+            pp_reg <= ~pp_reg;
+        end else begin
+            pp_reg <= pp_reg;
+        end
+    end
+
     //AXI读地址
     //axi_rd_addr
     always@(posedge axi_clk or negedge axi_rst_n) begin
         if(~axi_rst_n) begin
             axi_rd_addr <= rd_beg_addr;  //初始化为起始地址
-        end else if(~rd_rst_n) begin
-            axi_rd_addr <= rd_beg_addr;  //人工读复位时
-        end else if(axi_rd_done && axi_rd_addr > (rd_end_addr - {burst_rd_addr_inc[AXI_ADDR_WIDTH-2:0], 1'b0} + 'd1)) begin 
-        //每次写完成后判断是否超限, 下一个写首地址后续的空间已经不够再进行一次突发写操作, 位拼接的作用是×2
-            axi_rd_addr <= rd_beg_addr;
-        end else if(axi_rd_done) begin
-            axi_rd_addr <= axi_rd_addr + burst_rd_addr_inc;  //增加一个burst_len的地址
-        end else begin
-            axi_rd_addr <= axi_rd_addr;
+        end
+        else if(pp_flag) begin
+            if(axi_rd_done && ((axi_rd_addr == (rd_end_addr- burst_rd_addr_inc))||(axi_rd_addr == ((rd_end_addr-rd_beg_addr)*2 + rd_beg_addr- burst_rd_addr_inc))))begin 
+                if(pp_reg) begin
+                    axi_rd_addr <= rd_beg_addr;
+                end else begin
+                    axi_rd_addr <= rd_end_addr; 
+                end
+            end else if(axi_rd_done) begin
+                axi_rd_addr <= axi_rd_addr + burst_rd_addr_inc;  //增加一个burst_len的地址
+            end else begin
+                axi_rd_addr <= axi_rd_addr;
+            end
+        end
+        else if(!pp_flag) begin
+            if(axi_rd_done && (axi_rd_addr >= (rd_end_addr - burst_rd_addr_inc))) begin 
+                axi_rd_addr <= rd_beg_addr;
+            end else if(axi_rd_done) begin
+                axi_rd_addr <= axi_rd_addr + burst_rd_addr_inc;  //增加一个burst_len的地址
+            end else begin
+                axi_rd_addr <= axi_rd_addr;
+            end
         end
     end
     
-/*     //AXI写突发长度
-    //axi_wr_len 
-    always@(posedge axi_clk or negedge rst_n) begin
-        if(~rst_n) begin
-            axi_wr_len <= wr_burst_len; //axi_wr_len初始化
-        end else if(wr_rst) begin
-            axi_wr_len <= wr_burst_len;
-        end else if(axi_wr_start_raise) begin 
-            //在上升沿到来时判断写地址是否超限, 若是, 则将axi_wr_len减小, 使地址恰可达wr_end_addr
-            //注意地址是按照字节寻址的,而每次burst将传输8Byte
-            if((axi_wr_addr + {real_wr_len[4:0],3'b0}) > wr_end_addr) begin //超限, 位拼接的作用是×8
-            //axi_wr_len设置为剩下的空间大小, 位拼接的作用是÷8, 减去1是由于AXI总线定义的burst_len = 真实burst_len - 1
-                axi_wr_len <= {3'b0, wr_addr_margin[7:3]} - 8'd1; 
-            end else begin
-                axi_wr_len <= wr_burst_len;  //未超限,则保持标准的wr_burst_len
-            end
-        end else begin
-            axi_wr_len <= axi_wr_len;
-        end
-    end */
-
-    //AXI读突发长度
-    //axi_rd_len 
-/*     always@(posedge axi_clk or negedge rst_n) begin
-        if(~rst_n) begin
-            axi_rd_len <= rd_burst_len; //axi_rd_len初始化
-        end else if(rd_rst) begin
-            axi_rd_len <= rd_burst_len;
-        end else if(axi_rd_start_raise) begin 
-            //在上升沿到来时判断写地址是否超限, 若是, 则将axi_rd_len减小, 使地址恰可达rd_end_addr
-            if((axi_rd_addr + {real_rd_len[4:0],3'b0}) > rd_end_addr) begin //超限, 位拼接的作用是×8
-            //设置为剩下的空间大小, 位拼接的作用是÷8, 减去1是由于AXI总线定义的burst_len = 真实burst_len - 1
-                axi_rd_len <= {3'b0, rd_addr_margin[7:3]} - 8'd1; 
-            end else begin
-                axi_rd_len <= rd_burst_len;  //未超限,则保持标准的wr_burst_len
-            end
-        end else begin
-            axi_rd_len <= axi_rd_len;
-        end
-    end    */ 
 
 //写FIFO, 待写入SDRAM的数据先暂存于此
 //使用FIFO IP核
