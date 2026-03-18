@@ -8,10 +8,10 @@ module ov5640_ddr_hdmi #(
     parameter   DDR_DATA_WIDTH  = 'd16,                 //DDR数据位宽
     parameter   WR_BEG_ADDR     = 'd0,                  //写FIFO写起始地址
     parameter   WR_END_ADDR     = H_PIXEL*V_PIXEL*2,    //写FIFO写终止地址 
-    parameter   WR_BURST_LEN    = 'd31,                 //写FIFO写突发长度为WR_BURST_LEN+1
+    parameter   WR_BURST_LEN    = 'd15,                 //写FIFO写突发长度为WR_BURST_LEN+1
     parameter   RD_BEG_ADDR     = 'd0,                  //读FIFO读起始地址
     parameter   RD_END_ADDR     = H_PIXEL*V_PIXEL*2,    //读FIFO读终止地址 
-    parameter   RD_BURST_LEN    = 'd31,                 //读FIFO读突发长度为RD_BURST_LEN+1
+    parameter   RD_BURST_LEN    = 'd15,                 //读FIFO读突发长度为RD_BURST_LEN+1
     parameter   AXI_DATA_WIDTH  = 'd64,                 //AXI总线读写数据位宽
     parameter   AXI_ADDR_WIDTH  = 'd28,                 //AXI总线读写地址位宽(DDR大小为256MB,对应总线地址为28位宽)
     parameter   AXI_AWSIZE      = 'b011                 //AXI总线一拍传输8字节
