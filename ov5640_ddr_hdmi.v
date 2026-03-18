@@ -31,9 +31,10 @@ module ov5640_ddr_hdmi #(
     input   wire    [7:0]                   ov5640_data,    
     output  wire                            sccb_scl,
     inout   wire                            sccb_sda,
+    output  wire                            ov5640_rst_n,
 
     output  wire    [DDR_ADDR_WIDTH-1:0]    ddr3_addr,  
-    output  wire    [1:0]                   ddr3_ba,
+    output  wire    [2:0]                   ddr3_ba,
     output  wire                            ddr3_cas_n,
     output  wire                            ddr3_ck_n,
     output  wire                            ddr3_ck_p,
@@ -49,6 +50,8 @@ module ov5640_ddr_hdmi #(
     output  wire                            ddr3_odt      
 );
 assign hdmi_oe = 1'b1;
+assign ov5640_rst_n = sys_rst_n;
+
 wire        ddr_clk;
 wire        hdmi_clk;
 wire        vga_clk;
@@ -63,12 +66,12 @@ clk_gen u_clk_gen(
     .clk_50m    (sys_clk) 
 );
 wire    ddr_stable; 
-wire    ddr_rst_n;                      
+wire    ddr_rst_n;  
+wire                        ov5640_cfg_done;    //摄像头寄存器配置完成
 assign  ddr_rst_n = sys_rst_n & pll_stable;     //DDR输入接口的复位信号
 wire    sys_init_done;  
 assign  sys_init_done = ddr_rst_n & ddr_stable & ov5640_cfg_done;    //其余外设复位信号
   
-wire                        ov5640_cfg_done;    //摄像头寄存器配置完成
 wire    [FIFO_WR_WIDTH-1:0] fifo_wr_data;       //图像数据RGB565
 wire                        fifo_wr_en;         //图像数据有效使能信号
 

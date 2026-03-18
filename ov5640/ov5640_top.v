@@ -1,4 +1,3 @@
-
 module  ov5640_top(
     input   wire            sys_clk         ,   //系统时钟
     input   wire            sys_rst_n       ,   //复位信号
@@ -19,7 +18,7 @@ module  ov5640_top(
 //parameter define
 parameter    SLAVE_ADDR =  7'h3C        ; // 器件地址(SLAVE_ADDR)
 parameter    BYTE_CTRL  =  1'b1         ; // 高电平表示寄存器地址为16位,低电平表示寄存器地址为8位
-parameter    CLK_FREQ   = 26'd25_000_000; // i2c_dri模块的驱动时钟频率(CLK_FREQ)
+parameter    CLK_FREQ   = 26'd50_000_000; // i2c_dri模块的驱动时钟频率(CLK_FREQ)
 parameter    I2C_FREQ   = 18'd250_000   ; // I2C的SCL时钟频率
 
 //wire  define

@@ -47,7 +47,7 @@ module axi_ddr_ctrl#(
     output  wire                        m_axi_wvalid    , //写数据有效标志
     input   wire                        m_axi_wready    , //从机发出的写数据ready         
     //写响应通道             
-    output  wire [3:0]                  m_axi_bid       ,
+    input   wire [3:0]                  m_axi_bid       ,
     input   wire [1:0]                  m_axi_bresp     , //响应信号,表征写传输是否成功
     input   wire                        m_axi_bvalid    , //响应信号valid标志
     output  wire                        m_axi_bready    , //主机响应ready信号       

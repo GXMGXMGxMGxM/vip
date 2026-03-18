@@ -8,45 +8,45 @@ module axi_ctrl#(
     parameter   AXI_AWSIZE      ='b011,      //AXI总线一拍传输8字节
     parameter   AXI_WSTRB_W     ='d8
 )(
-    (*mark_debug="true"*)input   wire                        axi_clk         , //AXI读写主机时钟
-    (*mark_debug="true"*)input   wire                        axi_rst_n       ,   
+    input   wire                        axi_clk         , //AXI读写主机时钟
+    input   wire                        axi_rst_n       ,   
     //用户端 写fifo端口                                          
-    (*mark_debug="true"*)input   wire                        wr_clk              , //写FIFO写时钟
+    input   wire                        wr_clk              , //写FIFO写时钟
     input   wire                        wr_rst_n            , //写复位
     input   wire [AXI_ADDR_WIDTH-1:0]   wr_beg_addr         , //写起始地址
     input   wire [AXI_ADDR_WIDTH-1:0]   wr_end_addr         , //写终止地址
     input   wire [7:0]                  wr_burst_len        , //写突发长度
-    (*mark_debug="true"*)input   wire                        wr_en               , //写FIFO写请求
-    (*mark_debug="true"*)input   wire [FIFO_WR_WIDTH-1:0]    wr_data             , //写FIFO写数据
+    input   wire                        wr_en               , //写FIFO写请求
+    input   wire [FIFO_WR_WIDTH-1:0]    wr_data             , //写FIFO写数据
     //用户端 读fifo端口                       
-    (*mark_debug="true"*)input   wire                        rd_clk              , //读FIFO读时钟
+    input   wire                        rd_clk              , //读FIFO读时钟
     input   wire                        rd_rst_n            , //读复位
     input   wire [AXI_ADDR_WIDTH-1:0]   rd_beg_addr         , //读起始地址
     input   wire [AXI_ADDR_WIDTH-1:0]   rd_end_addr         , //读终止地址
     input   wire [7:0]                  rd_burst_len        , //读突发长度
-    (*mark_debug="true"*)input   wire                        rd_en               , //读FIFO读请求
-    (*mark_debug="true"*)output  wire [FIFO_RD_WIDTH-1:0]    rd_data             , //读FIFO读数据 
+    input   wire                        rd_en               , //读FIFO读请求
+    output  wire [FIFO_RD_WIDTH-1:0]    rd_data             , //读FIFO读数据 
     //写AXI主机
-    (*mark_debug="true"*)input   wire                        axi_writing         , //AXI主机写正在进行
-    (*mark_debug="true"*)input   wire                        axi_wr_ready        , //AXI主机写准备好
-    (*mark_debug="true"*)output  reg                         axi_wr_start        , //AXI主机写请求
-    (*mark_debug="true"*)output  wire [AXI_DATA_WIDTH-1:0]   axi_wr_data         , //从写FIFO中读取的数据,写入AXI写主机
-    (*mark_debug="true"*)output  reg  [AXI_ADDR_WIDTH-1:0]   axi_wr_addr         , //AXI主机写地址
+    input   wire                        axi_writing         , //AXI主机写正在进行
+    input   wire                        axi_wr_ready        , //AXI主机写准备好
+    output  reg                         axi_wr_start        , //AXI主机写请求
+    output  wire [AXI_DATA_WIDTH-1:0]   axi_wr_data         , //从写FIFO中读取的数据,写入AXI写主机
+    output  reg  [AXI_ADDR_WIDTH-1:0]   axi_wr_addr         , //AXI主机写地址
     output  wire [7:0]                  axi_wr_len          , //AXI主机写突发长度
-    (*mark_debug="true"*)input   wire                        axi_wr_done         , //AXI主机完成一次写操作           
+    input   wire                        axi_wr_done         , //AXI主机完成一次写操作           
     //读AXI主机                
-    (*mark_debug="true"*)input   wire                        axi_reading         , //AXI主机读正在进行
-    (*mark_debug="true"*)input   wire                        axi_rd_ready        , //AXI主机读准备好
-    (*mark_debug="true"*)output  reg                         axi_rd_start        , //AXI主机读请求
-    (*mark_debug="true"*)input   wire [AXI_DATA_WIDTH-1:0]   axi_rd_data         , //从AXI读主机读到的数据,写入读FIFO
-    (*mark_debug="true"*)output  reg  [AXI_ADDR_WIDTH-1:0]   axi_rd_addr         , //AXI主机读地址
+    input   wire                        axi_reading         , //AXI主机读正在进行
+    input   wire                        axi_rd_ready        , //AXI主机读准备好
+    output  reg                         axi_rd_start        , //AXI主机读请求
+    input   wire [AXI_DATA_WIDTH-1:0]   axi_rd_data         , //从AXI读主机读到的数据,写入读FIFO
+    output  reg  [AXI_ADDR_WIDTH-1:0]   axi_rd_addr         , //AXI主机读地址
     output  wire [7:0]                  axi_rd_len          , //AXI主机读突发长度 
-    (*mark_debug="true"*)input   wire                        axi_rd_done           //AXI主机完成一次写操作
+    input   wire                        axi_rd_done           //AXI主机完成一次写操作
 );
 
     //FIFO数据数量计数器   
-    (*mark_debug="true"*)wire [10:0]  cnt_wr_fifo_rdport      ;  //写FIFO读端口(对接AXI写主机)数据数量    
-    (*mark_debug="true"*)wire [10:0]  cnt_rd_fifo_wrport      ;  //读FIFO写端口(对接AXI读主机)数据数量
+    wire [10:0]  cnt_wr_fifo_rdport      ;  //写FIFO读端口(对接AXI写主机)数据数量    
+    wire [10:0]  cnt_rd_fifo_wrport      ;  //读FIFO写端口(对接AXI读主机)数据数量
     
     wire        rd_fifo_empty           ;  //读FIFO空标志
     wire        rd_fifo_wr_rst_busy     ;  //读FIFO正在初始化,此时先不向SDRAM发出读取请求, 否则将有数据丢失

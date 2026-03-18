@@ -1,7 +1,7 @@
 
 module  i2c_ctrl
 #(
-    parameter   DEVICE_ADDR     =   7'b1111_000     ,   //i2c设备地址
+    parameter   DEVICE_ADDR     =   7'b011_1100     ,   //i2c设备地址
     parameter   SYS_CLK_FREQ    =   26'd50_000_000  ,   //输入系统时钟频率
     parameter   SCL_FREQ        =   18'd250_000         //i2c设备scl时钟频率
 )
@@ -217,9 +217,9 @@ always@(*)
             ack <=  1'b1;
         ACK_1,ACK_2,ACK_3,ACK_4,ACK_5:
             if(i2c_clk_cnt == 2'd0)
-                ack <=  1'b0;
+                ack <=  sda_in;
             else
-                ack <=  1'b1;
+                ack <=  ack;
         default:    ack <=  1'b1;
     endcase
 

@@ -16,7 +16,7 @@ module  ov5640_cfg
 
 //parameter define
 parameter   REG_NUM         =   8'd251      ;   //总共需要配置的寄存器个数
-parameter   CNT_WAIT_MAX    =   15'd20000   ;   //寄存器配置等待计数最大值
+parameter   CNT_WAIT_MAX    =   15'd2000   ;   //寄存器配置等待计数最大值
 
 //wire  define
 wire    [23:0]  cfg_data_reg[REG_NUM-1:0]   ;   //寄存器配置数据暂存

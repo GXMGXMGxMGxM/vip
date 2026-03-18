@@ -28,7 +28,7 @@ module ddr_interface #(
     output  wire                        ddr_stable          , //DDR3初始化完成
     //DDR3接口                              
     output  wire [DDR_ADDR_WIDTH-1:0]   ddr3_addr,  
-    output  wire [1:0]                  ddr3_ba,
+    output  wire [2:0]                  ddr3_ba,
     output  wire                        ddr3_cas_n,
     output  wire                        ddr3_ck_n,
     output  wire                        ddr3_ck_p,
