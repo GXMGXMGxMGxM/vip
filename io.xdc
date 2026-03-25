@@ -59,4 +59,11 @@ set_property IOSTANDARD TMDS_33 [get_ports {hdmi_data_n[2]}]
 set_property PACKAGE_PIN H5 [get_ports hdmi_oe]
 set_property IOSTANDARD LVCMOS33 [get_ports hdmi_oe]
 
-
+set_property PACKAGE_PIN M22 [get_ports led[0]]
+set_property IOSTANDARD LVCMOS33 [get_ports led[0]]
+set_property PACKAGE_PIN N22 [get_ports led[1]]
+set_property IOSTANDARD LVCMOS33 [get_ports led[1]]
+set_property PACKAGE_PIN L21 [get_ports led[2]]
+set_property IOSTANDARD LVCMOS33 [get_ports led[2]]
+set_property PACKAGE_PIN K21 [get_ports led[3]]
+set_property IOSTANDARD LVCMOS33 [get_ports led[3]]

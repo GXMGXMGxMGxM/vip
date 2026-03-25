@@ -7,7 +7,7 @@ module rgb_gray #(
     input   wire                                clk,
     input   wire                                rst_n,
     input   wire                                rgb_valid_in,
-    input   wire    [PRE_IMG_DATA_WIDTH:0]      rgb_data_in,
+    input   wire    [PRE_IMG_DATA_WIDTH-1:0]    rgb_data_in,
     output  wire                                gray_valid_out,
     output  wire    [6:0]                       gray_x_out,
     output  wire    [6:0]                       gray_y_out,

@@ -23,30 +23,30 @@ wire                          	pool_valid_out;
 wire [9:0]                    	pool_addr_out;
 wire                            cnn_start;
 pre_process u_pre_process(
-	.clk            	(clk             ),
-	.rst_n          	(rst_n           ),
-	.rgb_x_in       	(rgb_x_in        ),
-	.rgb_y_in       	(rgb_y_in        ),
-	.rgb_data_in    	(rgb_data_in     ),
-	.rgb_valid_in   	(rgb_valid_in    ),
-	.pool_data_out  	(pool_data_out   ),
-	.pool_valid_out 	(pool_valid_out  ),
-	.pool_addr_out     	(pool_addr_out   ),
+	.clk            	(clk),
+	.rst_n          	(rst_n),
+	.rgb_x_in       	(rgb_x_in),
+	.rgb_y_in       	(rgb_y_in),
+	.rgb_data_in    	(rgb_data_in),
+	.rgb_valid_in   	(rgb_valid_in),
+	.pool_data_out  	(pool_data_out),
+	.pool_valid_out 	(pool_valid_out),
+	.pool_addr_out     	(pool_addr_out),
     .cnn_start          (cnn_start)
 );
 
-wire [DATA_WIDTH-1:0] 	pred_confidence;
+wire [IMG_DATA_WIDTH-1:0] 	pred_confidence;
 
 cnn_top u_cnn_top(
-	.clk             	(clk              ),
-	.rst             	(!rst_n           ),
-	.start           	(cnn_start        ),
-	.pixel_data      	(pool_data_out    ),
-	.pixel_valid     	(pool_valid_out   ),
-	.pixel_addr      	(pool_addr_out    ),
-	.done            	(cnn_done         ),
-	.pred_digit      	(num              ),
-	.pred_confidence 	(pred_confidence  )
+	.clk             	(clk),
+	.rst             	(!rst_n),
+	.start           	(cnn_start),
+	.pixel_data      	(pool_data_out),
+	.pixel_valid     	(pool_valid_out),
+	.pixel_addr      	(pool_addr_out),
+	.done            	(cnn_done),
+	.pred_digit      	(num),
+	.pred_confidence 	(pred_confidence)
 );
 
 endmodule

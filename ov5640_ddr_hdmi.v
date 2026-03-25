@@ -33,6 +33,8 @@ module ov5640_ddr_hdmi #(
     inout   wire                            sccb_sda,
     output  wire                            ov5640_rst_n,
 
+    output  wire    [3:0]                   led_display,
+
     output  wire    [DDR_ADDR_WIDTH-1:0]    ddr3_addr,  
     output  wire    [2:0]                   ddr3_ba,
     output  wire                            ddr3_cas_n,
@@ -89,19 +91,24 @@ ov5640_top u_ov5640_top(
     .ov5640_wr_en    (fifo_wr_en),          
     .ov5640_data_out (fifo_wr_data)    
 );
-wire                     fifo_rd_en;            //读FIFO读请求
-wire [FIFO_RD_WIDTH-1:0] fifo_rd_data;          //读FIFO读数据
-wire                     hsync;                 //行同步
-wire                     vsync;                 //场同步
-wire                     rgb_valid;             //输出像素点色彩信息有效信号
-wire [15:0]              rgb_out;               //输出像素点色彩信息
+wire                        fifo_rd_en;            //读FIFO读请求
+wire [FIFO_RD_WIDTH-1:0]    fifo_rd_data;          //读FIFO读数据
+wire                        hsync;                 //行同步
+wire                        vsync;                 //场同步
+wire                        rgb_valid;             //输出像素点色彩信息有效信号
+wire [15:0]                 rgb_out;               //输出像素点色彩信息
+wire [11:0]                 rgb_x_in;
+wire [11:0]                 rgb_y_in;
+    
+wire                        cnn_done;
+wire [3:0]                  num;
 
 vga_ctrl u_vga_ctrl(
     .vga_clk     (vga_clk),    
     .sys_rst_n   (sys_init_done),    
     .pix_data    (fifo_rd_data),    //输入像素点色彩信息
-    .pix_x       (),                //输出VGA有效显示区域像素点X轴坐标
-    .pix_y       (),                //输出VGA有效显示区域像素点Y轴坐标
+    .pix_x       (rgb_x_in),                //输出VGA有效显示区域像素点X轴坐标
+    .pix_y       (rgb_y_in),                //输出VGA有效显示区域像素点Y轴坐标
     .hsync       (hsync),           
     .vsync       (vsync),           
     .pix_data_req(fifo_rd_en),
@@ -113,9 +120,9 @@ hdmi_ctrl u_hdmi_ctrl(
     .clk_1x      (vga_clk),   
     .clk_5x      (hdmi_clk),    
     .sys_rst_n   (sys_init_done),    
-    .rgb_blue    ({rgb_out[4:0],3'b0}),     
-    .rgb_green   ({rgb_out[10:5],2'b0}),    
-    .rgb_red     ({rgb_out[15:11],3'b0}),   
+    .rgb_blue    ({rgb_out[4:0],rgb_out[4:2]}),     
+    .rgb_green   ({rgb_out[10:5],rgb_out[10:9]}),    
+    .rgb_red     ({rgb_out[15:11],rgb_out[15:13]}),   
     .hsync       (hsync),    
     .vsync       (vsync),    
     .de          (rgb_valid),   
@@ -131,9 +138,24 @@ hdmi_ctrl u_hdmi_ctrl(
 
 
 
+image_process_top u_image_process_top(
+	.clk          	(vga_clk),
+	.rst_n        	(sys_init_done),
+	.rgb_x_in     	(rgb_x_in),
+	.rgb_y_in     	(rgb_y_in),
+	.rgb_data_in  	(rgb_out),
+	.rgb_valid_in 	(rgb_valid),
+	.cnn_done     	(cnn_done),
+	.num          	(num)
+);
 
-
-
+led u_led(
+	.clk         	(vga_clk),
+	.rst_n       	(sys_init_done),
+	.done        	(cnn_done),
+	.num         	(num),
+	.led_display 	(led_display)
+);
 
 ddr_interface #(
     .FIFO_WR_WIDTH  (FIFO_WR_WIDTH), 

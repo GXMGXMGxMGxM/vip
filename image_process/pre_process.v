@@ -43,7 +43,6 @@ rgb_gray u_rgb_gray(
 );
 
 reg     [IMG_DATA_WIDTH-1:0]    buffer[0:3][0:IMG_WIDTH-1]; 
-wire    [IMG_DATA_WIDTH-1:0]    pool_data_out;
 reg     [IMG_DATA_WIDTH-1:0]    window_00;
 reg     [IMG_DATA_WIDTH-1:0]    window_01;
 reg     [IMG_DATA_WIDTH-1:0]    window_02;
