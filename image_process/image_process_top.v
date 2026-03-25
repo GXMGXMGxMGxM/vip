@@ -8,14 +8,14 @@ module image_process_top#(
     parameter IMG_HEIGHT = 28,
     parameter IMG_DATA_WIDTH = 8
 )(
-    input   wire                               clk,
-    input   wire                               rst_n,
-    input   wire   [11:0]                      rgb_x_in,
-    input   wire   [11:0]                      rgb_y_in,
-    input   wire   [PRE_IMG_DATA_WIDTH-1:0]    rgb_data_in,
-    input   wire                               rgb_valid_in,
-
-    output  wire   [3:0]                       num
+    input   wire                                clk,
+    input   wire                                rst_n,
+    input   wire   [11:0]                       rgb_x_in,
+    input   wire   [11:0]                       rgb_y_in,
+    input   wire   [PRE_IMG_DATA_WIDTH-1:0]     rgb_data_in,
+    input   wire                                rgb_valid_in,
+    output  wire                                cnn_done,
+    output  wire   [3:0]                        num
 );
 
 wire [IMG_DATA_WIDTH-1:0]     	pool_data_out;
@@ -35,8 +35,6 @@ pre_process u_pre_process(
     .cnn_start          (cnn_start)
 );
 
-wire                  	done;
-wire [3:0]            	pred_digit;
 wire [DATA_WIDTH-1:0] 	pred_confidence;
 
 cnn_top u_cnn_top(
@@ -46,7 +44,7 @@ cnn_top u_cnn_top(
 	.pixel_data      	(pool_data_out    ),
 	.pixel_valid     	(pool_valid_out   ),
 	.pixel_addr      	(pool_addr_out    ),
-	.done            	(done             ),
+	.done            	(cnn_done         ),
 	.pred_digit      	(num              ),
 	.pred_confidence 	(pred_confidence  )
 );
