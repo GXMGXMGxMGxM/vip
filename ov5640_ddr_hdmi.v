@@ -129,6 +129,12 @@ hdmi_ctrl u_hdmi_ctrl(
     .hdmi_b_n    (hdmi_data_n[0])     
 );
 
+
+
+
+
+
+
 ddr_interface #(
     .FIFO_WR_WIDTH  (FIFO_WR_WIDTH), 
     .FIFO_RD_WIDTH  (FIFO_RD_WIDTH),
